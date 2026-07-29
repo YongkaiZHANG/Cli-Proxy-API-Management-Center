@@ -1,0 +1,22 @@
+[Unit]
+Description=Butler multi-model orchestration service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__APP_USER__
+Group=__APP_USER__
+WorkingDirectory=__APP_DIR__/butler
+EnvironmentFile=__APP_DIR__/butler/.env
+ExecStart=__APP_DIR__/butler/.venv/bin/python -m app.main
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=__APP_DIR__/butler/data
+
+[Install]
+WantedBy=multi-user.target

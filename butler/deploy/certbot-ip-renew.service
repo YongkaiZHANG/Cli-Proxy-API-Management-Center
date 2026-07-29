@@ -1,0 +1,9 @@
+[Unit]
+Description=Renew Butler Let's Encrypt IP certificate
+After=network-online.target nginx.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/certbot renew --preferred-profile shortlived --quiet
+ExecStartPost=/usr/bin/systemctl reload nginx
