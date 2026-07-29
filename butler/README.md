@@ -51,6 +51,62 @@ BUTLER_JUDGE_MODEL=
 
 When these are blank, Butler reads the current model list and selects models heuristically.
 
+## Alibaba Cloud deployment
+
+The deployment scripts target `112.74.109.99`, keep Butler bound to `127.0.0.1:8318`, place Nginx in front, and enable HTTP Basic Authentication.
+
+Open TCP ports `80` and `443` in the Alibaba Cloud security group before running the scripts. Preserve the ports already used by SSH and Xray.
+
+On the server:
+
+```bash
+git clone --branch agent/butler-mvp \
+  https://github.com/YongkaiZHANG/Cli-Proxy-API-Management-Center.git
+cd Cli-Proxy-API-Management-Center
+
+export BUTLER_GATEWAY_API_KEY='replace-with-your-proxy-api-key'
+export BUTLER_BASIC_USER='butler'
+export BUTLER_BASIC_PASSWORD='replace-with-a-long-random-password'
+
+sudo -E bash butler/deploy/install.sh
+```
+
+This first activates authenticated HTTP. Verify it before requesting a certificate:
+
+```bash
+curl -u 'butler:your-password' http://112.74.109.99/api/health
+```
+
+Then enable a publicly trusted Let's Encrypt IP-address certificate:
+
+```bash
+sudo bash /opt/cli-proxy-management/butler/deploy/enable-ip-https.sh
+```
+
+Optionally provide a renewal/contact email:
+
+```bash
+sudo LETSENCRYPT_EMAIL='you@example.com' \
+  bash /opt/cli-proxy-management/butler/deploy/enable-ip-https.sh
+```
+
+The resulting address is:
+
+```text
+https://112.74.109.99
+```
+
+Useful checks:
+
+```bash
+sudo systemctl status butler --no-pager
+sudo systemctl status nginx --no-pager
+sudo systemctl list-timers | grep certbot-ip-renew
+sudo journalctl -u butler -n 100 --no-pager
+```
+
+The Let's Encrypt IP certificate is short-lived, so the included systemd timer checks renewal twice daily.
+
 ## API endpoints
 
 - `GET /api/health`
